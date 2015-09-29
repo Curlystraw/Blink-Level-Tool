@@ -1,0 +1,241 @@
+<HTML>
+<head>
+<script language="javascript" src="http://code.jquery.com/jquery-1.4.2.js" ></script>
+
+<style>
+	body {
+		background: #fff;
+		font-family: 'Courier New';
+	}
+	#game-canvas {
+		border: 1px solid black;
+	}
+	#message {
+		color: black;
+	}
+</style>
+<title></title>
+</head>
+
+<body bgcolor = "#ffffff">
+<div style="height:1000px;width:1650px">
+	<div  id="imgstore" style="position:absolute; top: 5px; left: 5px"></div>
+	<canvas id="canv" style="position:absolute; top:5px; left:5px"></canvas>
+</div>
+<div style="position:absolute;left:1650px; top: 50px;border-style:single">
+	<form>
+	<input type="radio" id="air" name="block" value="0">
+	Air block<br>
+	<input type="radio" id="solid" name="block" value="10">
+	Solid block<br>
+	</form>
+	<br>
+	<br>
+	<input type="file" id="file-input"/>
+</div>
+<div style="position:relative;top:0px">
+	<h3>Map Data</h3>
+	<input style="border-style:solid;word-wrap:break-word"  id="data"/>
+</div>
+
+
+<script>
+var canvas = document.getElementById("canv");
+var context = canvas.getContext("2d");
+var output = document.getElementById("data");
+
+
+function imageHandler(e2) 
+{ 
+  var store = document.getElementById('imgstore');
+  store.innerHTML='<img src="' + e2.target.result +'">';
+  canvas.getContext("2d").drawImage(mask,0,0);
+}
+
+function loadimage(e1)
+{
+  var filename = e1.target.files[0]; 
+  var fr = new FileReader();
+  fr.onload = imageHandler;  
+  fr.readAsDataURL(filename); 
+}
+
+window.onload=function()
+{
+  var y = document.getElementById("file-input");
+  y.addEventListener('change', loadimage, false);
+}
+</script>
+
+
+<script>
+
+
+var mouse = false;
+var data = document.getElementById("data");
+
+var blocks = [];
+blocks[0] = document.getElementById("air");
+blocks[1] = document.getElementById("solid");
+
+var collisionMap = [];
+
+for(x = 0; x < 50; x++){
+	for(y = 0; y < 30; y++){
+		collisionMap.push(0);
+	}
+}
+
+var RIGHT = false;
+var LEFT = false;
+
+var mask = new Image();
+mask.src = "mask.png";
+
+var MAX_CHANNELs = 20;
+//audiochannels = new Array();
+//for(a = 0; a <MAX_CHANNELs; a++){
+//	audiochannels[a] = new Array();
+//	audiochannels[a]["channel"] = new Audio();
+//	audiochannels[a]["finished"] = -1;
+//}
+
+canvas.width = 1600;
+canvas.height = 960;
+
+prevMX = undefined;
+prevMY = undefined;
+
+mX = undefined;
+mY = undefined;
+
+
+//canvas.addEventListener("mousemove",mouseOn,false);
+//canvas.addEventListener("click",clicked,false);
+//document.addEventListener("keydown",move,false);
+//document.addEventListener("keyup",stopMove,false);
+//canvas.addEventListener("mousemove",mouseOn,false);
+$(canvas).mousedown(mouseDown);
+$(canvas).mouseup(mouseUp);
+$(canvas).mousemove(mouseOn);
+$(output).change(manualChange);
+
+
+$(document).ready(function(){
+	var c = document.getElementById("canv");
+	var ctx = c.getContext("2d");
+	
+	ctx.fillSTyle = "#fff";
+	//var map = new m("map.png");
+	//var player = new p(map.obArray);
+	
+	
+	//var interval = setInterval(function(){main(ctx, player, map)},32);
+	/*var int = setInterval(function(){
+	main(canvas,ctx);//, player, map);
+	},20);*/
+});
+
+function drawOver(pos){
+	var b,i;
+	for(i in blocks){
+		b = blocks[i];
+		if(b.checked){
+			collisionMap[pos[0]*30+pos[1]] = b.value;
+			data.value = collisionMap.toString();
+			mapPaint(pos,b.value);
+			break;
+		}
+	}
+}
+
+function manualChange(e){
+	newMap = e.currentTarget.value;
+	newMap = newMap.split(",");
+	console.log(newMap);
+	for(i in newMap){
+		x = Math.floor(i/30);
+		y = i % 30;
+		collisionMap[x*30+y] = parseInt(newMap[i]);
+		mapPaint([x,y],newMap[i]);
+	}
+}
+
+function mapPaint(pos,block){
+	context.globalAlpha = 1;
+	context.clearRect(pos[0]*32,pos[1]*32,32,32);
+	context.drawImage(mask,0,0,32,32,pos[0]*32,pos[1]*32,32,32);
+	var color;
+	switch(block){
+	case "0":
+		context.globalAlpha = 0;
+		break;
+	case "10":
+		context.globalAlpha = .5;
+		context.fillStyle = "#000000";
+		break;
+	}
+	
+	context.fillRect(pos[0]*32,pos[1]*32,32,32);
+}
+
+function mouseDown(e){
+	mouse = true;
+}
+
+function mouseUp(e){
+	mouse = false;
+}
+
+function mouseOn(e){
+	pos = getCursorPosition(e,canvas);
+	if(pos[0] >= 1600)
+		pos[0] = 1599;
+	if(pos[1] >= 960)
+		pos[1] = 959;
+	
+	mX = pos[0]//Math.floor(pos[0]/2);
+	mY = pos[1]//Math.floor(pos[1]/2);
+	
+	var Tile = [];
+	Tile[0] = Math.floor(pos[0] / 32);
+	Tile[1] = Math.floor(pos[1] / 32);
+	var oldXTile = Math.floor(prevMX / 32);
+	var oldYTile = Math.floor(prevMY / 32);
+	
+	
+	if((Tile[0] != oldXTile || Tile[1] != oldYTile) && mouse){
+		prevMX = mX;
+		prevMY = mY;
+		drawOver(Tile);
+	}
+	else{
+		prevMX = -20;
+		prevMY = -20;
+	}
+}
+
+function getCursorPosition(e,canvas) {
+ var x;
+ var y;
+ if (e.pageX || e.pageY) {
+  x = e.pageX;
+  y = e.pageY;
+ }
+ else {
+  x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+  y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+ }
+ // Convert to coordinates relative to the canvas
+ x -= canvas.offsetLeft;
+ y -= canvas.offsetTop;
+
+ return [x,y]
+}
+
+
+</script>
+
+</body>
+
+</HTML>
