@@ -28,6 +28,10 @@
 	Air block<br>
 	<input type="radio" id="solid" name="block" value="10">
 	Solid block<br>
+	<input type="radio" id="ice" name="block" value="11">
+	Ice block<br>
+	<input type="radio" id="kill" name="block" value="5">
+	Kill zone<br>
 	</form>
 	<br>
 	<br>
@@ -77,6 +81,8 @@ var data = document.getElementById("data");
 var blocks = [];
 blocks[0] = document.getElementById("air");
 blocks[1] = document.getElementById("solid");
+blocks[2] = document.getElementById("kill");
+blocks[3] = document.getElementById("ice");
 
 var collisionMap = [];
 
@@ -170,10 +176,17 @@ function mapPaint(pos,block){
 	case "0":
 		context.globalAlpha = 0;
 		break;
+	case "5":
+		context.globalAlpha = .5;
+		context.fillStyle = "#ff0000";
+		break;
 	case "10":
 		context.globalAlpha = .5;
 		context.fillStyle = "#000000";
 		break;
+	case "11":
+		context.globalAlpha = .5;
+		context.fillStyle = "#00ffff";
 	}
 	
 	context.fillRect(pos[0]*32,pos[1]*32,32,32);
