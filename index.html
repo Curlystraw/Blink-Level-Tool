@@ -40,6 +40,10 @@
 	Ice block<br>
 	<input type="radio" id="kill" name="block" value="5">
 	Kill zone<br>
+	<br>
+	<br>
+	<input type="checkbox" id="blink" name="blink" value=10>
+	Blink block<br>
 	
 	</form>
 	<br>
@@ -98,6 +102,7 @@ blocks[5] = document.getElementById("p2");
 blocks[6] = document.getElementById("p3");
 blocks[7] = document.getElementById("p4");
 
+var isBlinkBlock = document.getElementById("blink");
 
 var collisionMap = [];
 
@@ -181,9 +186,9 @@ function drawOver(pos){
 			mapVal = collisionMap[pos[0]*30+pos[1]];
 			if(parseInt(mapVal) < 5 && parseInt(mapVal) != 0)
 				drawOverPlayer(parseInt(mapVal));
-			collisionMap[pos[0]*30+pos[1]] = b.value;
+			collisionMap[pos[0]*30+pos[1]] = (parseInt(b.value)+(blink.checked && parseInt(b.value) >= 10?10:0)).toString();
 			data.value = collisionMap.toString();
-			mapPaint(pos,b.value);
+			mapPaint(pos,collisionMap[pos[0]*30+pos[1]]);
 			break;
 		}
 	}
@@ -256,6 +261,15 @@ function mapPaint(pos,block){
 	case "11":
 		context.globalAlpha = .5;
 		context.fillStyle = "#00ffff";
+		break;
+	case "20":
+		context.globalAlpha =.5;
+		context.fillStyle = "#000088";
+		break;
+	case "21":
+		context.globalAlpha = .5;
+		context.fillStyle = "#004499";
+		break;
 	}
 	if(block == "1"){
 		context.drawImage(p1,pos[0]*32,pos[1]*32);
